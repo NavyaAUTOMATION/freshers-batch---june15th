@@ -251,7 +251,7 @@ docker.io/library/tomcat:7.0
 
 11. Run the Apache Tomcat 7, I mean create a container of Apache Tomcat.
 
-ans: docker run -it -p 8888:8080 --name Mytomcat 9dfd74e6bc2f
+ans: docker run -it -p 8085:8080 --name Mytomcat 9dfd74e6bc2f
 
 Using CATALINA_BASE:   /usr/local/tomcat
 Using CATALINA_HOME:   /usr/local/tomcat
@@ -290,7 +290,7 @@ ans:  docker inspect Mytomcat : http://192.168.42.122:8080/
 
 13. Which Port it is using?
 
-ans: "HostPort": "8888"
+ans: "HostPort": "8085"
 
 14. Try to access the Tomcat's home page from your machine/vm.
 
