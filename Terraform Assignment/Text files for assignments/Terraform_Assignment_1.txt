@@ -1,0 +1,49 @@
+Create a file called main.tf.
+Create a docker image resource and call it nginx_image.
+Set the name of the image to nginx:latest.
+Save and exit the file.
+
+Initialize Terraform.
+Plan the deploy and output a terraform plan called tf_image_plan.
+Apply the plan using tf_image_plan.
+
+Solution:
+
+*****************main.tf***********************
+terraform {
+  required_providers {
+    docker = {
+      source  = "kreuzwerker/docker"
+      version = "2.15.0"
+    }
+  }
+}
+
+provider "docker" {
+  host = "npipe:////.//pipe//docker_engine"
+}
+
+resource "docker_image" "nginx" {
+  name = "nginx:latest"
+}
+
+
+Dell@DESKTOP-HOURH7G MINGW64 ~/Desktop/DevOps_Assignments Navya Datla/Terraform Assignment/Terraform_assignment_1 (master)
+$ terraform init
+
+Initializing the backend...
+
+Initializing provider plugins...
+- Reusing previous version of kreuzwerker/docker from the dependency lock file
+- Using previously-installed kreuzwerker/docker v2.15.0
+
+Terraform has been successfully initialized!
+
+Dell@DESKTOP-HOURH7G MINGW64 ~/Desktop/DevOps_Assignments Navya Datla/Terraform Assignment/Terraform_assignment_1 (master)
+$ terraform plan -out "tf_image_plan.tfplan"
+docker_image.nginx: Refreshing state... [id=sha256:08b152afcfae220e9709f00767054b824361c742ea03a9fe936271ba520a0a4bnginx:latest]
+
+Dell@DESKTOP-HOURH7G MINGW64 ~/Desktop/DevOps_Assignments Navya Datla/Terraform Assignment/Terraform_assignment_1 (master)
+$ terraform apply "tf_image_plan"
+docker_image.nginx: Creating...
+docker_image.nginx: Creation complete after 0s [id=sha256:08b152afcfae220e9709f00767054b824361c742ea03a9fe936271ba520a0a4bnginx:latest]

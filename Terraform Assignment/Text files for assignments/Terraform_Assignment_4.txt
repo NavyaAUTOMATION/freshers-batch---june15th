@@ -1,0 +1,265 @@
+Create Ghost module
+Create a directory called ghost.
+Your modules will be made up of three files: main.tf, variables.tf and outputs.tf.
+
+main.tf
+In main.tf you will deploy out two resources docker_image and docker_container. The docker_image resource name will be ghost_image.
+The name will use th image_name variable.
+The docker_container resource name will be ghost_container.
+The name will be set using a varialbe called container_name. The image will be set usingdocker_image.ghost_image.latest. Set the external port to use the ext_port variable.
+
+variables.tf
+In variables.tf create three varialbes: image_name, container_name and ext_port.
+
+outputs.tf
+In outputs.tf create two outputs: ip and container_name. The ip output the ghost_container's ip_address attribute.
+The container_name output the ghost_container's name attribute.
+
+Create root module
+main.tf
+In cloud_user directory create main.tf, variables.tf and outputs.tf. In main.tf will use the ghost module.
+Set image_name using a variable called image_name.
+Set container_name using a variable called container_name.
+Set ext_port using a variable called ext_port.
+In variables.tf create three image_name, container_name and ext_port.
+
+variables.tf
+The image_name will have a default value of ghost:latest with a description of Image for container.
+The container_name will have a default value of blogwith a description ofName of the container.  
+Theext_portwill have adefaultvalue of 80 with a description of External port for container.
+
+outputs.tf
+In outputs.tf create two outputs: ip and container_name. The ip output the ghost_container's ip_address attribute.
+The container_name output the ghost_container's name attribute.
+
+Deploy the infrastructure
+Initialize Terraform.
+Generate a Terraform plan and output a plan file.
+Deploy the infrastructure using the plan file.
+
+Solution:
+
+*********************************Ghost Module*****************************************
+
+************************main.tf*****************************
+terraform {
+  required_providers {
+    docker = {
+      source  = "kreuzwerker/docker"
+      version = "2.15.0"
+    }
+  }
+}
+
+
+provider "docker" {
+
+  host    = "npipe:////.//pipe//docker_engine"
+}
+
+# Download the Ghost Image
+resource "docker_image" "ghost_image" {
+     name = "${var.image_name}"
+}
+# Start the Ghost Container
+resource "docker_container" "ghost_container" {
+    name = "${var.container_name}"
+    image = "${docker_image.ghost_image.latest}"
+    ports {
+        internal = "2368"
+        external = "${var.ext_port}"
+    }
+}
+
+
+*****************************Variables.tf**************************
+
+#Define variables
+variable "image_name" {
+    default = "ghost:latest"
+}
+
+variable "container_name" {
+    default = "ghost_blog"
+}
+
+variable "ext_port" {
+    default = "80"
+}
+
+***********************outputs.tf******************************
+
+#Output the IP Address of the Container
+output "ip" {
+    value = "${docker_container.ghost_container.ip_address}"
+}
+
+output "container_name" {
+    value = "${docker_container.ghost_container.name}"
+}
+
+Dell@DESKTOP-HOURH7G MINGW64 ~/Desktop/DevOps_Assignments Navya Datla/Terraform Assignment/Terraform_assignment_4/Ghost_Module (master)
+$ terraform init
+
+Initializing the backend...
+
+Initializing provider plugins...
+- Finding kreuzwerker/docker versions matching "2.15.0"...
+- Installing kreuzwerker/docker v2.15.0...
+- Installed kreuzwerker/docker v2.15.0 (self-signed, key ID BD080C4571C6104C)
+
+Partner and community providers are signed by their developers.
+If you'd like to know more about provider signing, you can read about it here:
+https://www.terraform.io/docs/cli/plugins/signing.html
+
+Terraform has created a lock file .terraform.lock.hcl to record the provider
+selections it made above. Include this file in your version control repository
+so that Terraform can guarantee to make the same selections by default when
+you run "terraform init" in the future.
+
+Terraform has been successfully initialized!
+
+
+Dell@DESKTOP-HOURH7G MINGW64 ~/Desktop/DevOps_Assignments Navya Datla/Terraform Assignment/Terraform_assignment_4/Ghost_Module (master)
+$ terraform plan -out "assignment4_ghost.tfplan"
+
+Terraform used the selected providers to generate the following execution
+
+  # docker_image.ghost_image will be created
+  + resource "docker_image" "ghost_image" {
+      + id          = (known after apply)
+      + latest      = (known after apply)
+      + name        = "ghost:latest"
+      + output      = (known after apply)
+      + repo_digest = (known after apply)
+    }
+
+Plan: 2 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  + container_name = "ghost_blog"
+  + ip             = (known after apply)
+
+─────────────────────────────────────────────────────────────────────────────
+
+Saved the plan to: assignment4_ghost.tfplan
+
+To perform exactly these actions, run the following command to apply:
+    terraform apply "assignment4_ghost.tfplan"
+
+Dell@DESKTOP-HOURH7G MINGW64 ~/Desktop/DevOps_Assignments Navya Datla/Terraform Assignment/Terraform_assignment_4/Ghost_Module (master)
+$ terraform apply "assignment4_ghost.tfplan"
+docker_image.ghost_image: Creating...
+docker_image.ghost_image: Creation complete after 1s [id=sha256:b05a58075ef6ad79016adb818a0a0b65097dfc58781e6eb6ab272fd32d976db9ghost:latest]
+docker_container.ghost_container: Creating...
+docker_container.ghost_container: Still creating... [10s elapsed]
+docker_container.ghost_container: Creation complete after 14s [id=d9805d3809d9481c32b72c4c5ad52b5a590904f470e9e3bb4e53cb31be8b7183]
+
+Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+container_name = "ghost_blog"
+ip = "172.17.0.2"
+
+
+**************************************************Root Module*******************************************
+
+****************main.tf****************************
+
+module "ghost" {
+source = "./ghost"
+image_name = "${var.image_name}"
+container_name = "${var.container_name}"
+ext_port = "${var.ext_port}"
+}
+
+*************variables.tf**************************
+
+variable "image_name" {
+
+    default = "ghost:latest"
+}
+variable "container_name" {
+
+    default = "blog"
+}
+variable "ext_port" {
+
+     default = "9090"
+}
+
+****************outputs.tf**************************
+
+output "ip" {
+    value = "${module.ghost.ip}"
+}
+output "container_name" {
+    value = "${module.ghost.container_name}"
+}
+
+
+Dell@DESKTOP-HOURH7G MINGW64 ~/Desktop/DevOps_Assignments Navya Datla/Terraform
+$ terraform init
+Initializing modules...
+Downloading C:/Users/Dell/Desktop/DevOps_Assignments Navya Datla/Terraform Assig
+- ghost in .terraform\modules\ghost
+
+Initializing the backend...
+
+Initializing provider plugins...
+- Finding kreuzwerker/docker versions matching "2.15.0"...
+- Installing kreuzwerker/docker v2.15.0...
+- Installed kreuzwerker/docker v2.15.0 (self-signed, key ID BD080C4571C6104C)
+
+Partner and community providers are signed by their developers.
+If you'd like to know more about provider signing, you can read about it here:
+https://www.terraform.io/docs/cli/plugins/signing.html
+
+Terraform has created a lock file .terraform.lock.hcl to record the provider
+selections it made above. Include this file in your version control repository
+so that Terraform can guarantee to make the same selections by default when
+you run "terraform init" in the future.
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+
+Dell@DESKTOP-HOURH7G MINGW64 ~/Desktop/DevOps_Assignments Navya Datla/Terraform
+$ terraform plan -out "assignment4_root.tfplan"
+
+Terraform used the selected providers to generate the following execution
+
+Plan: 2 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  + container_name = "blog"
+  + ip             = (known after apply)
+
+─────────────────────────────────────────────────────────────────────────────
+
+Saved the plan to: assignment4_root.tfplan
+
+To perform exactly these actions, run the following command to apply:
+    terraform apply "assignment4_root.tfplan"
+
+Dell@DESKTOP-HOURH7G MINGW64 ~/Desktop/DevOps_Assignments Navya Datla/Terraform Assignment/Terraform_assignment_4/Root_Module (master)
+$ terraform apply "assignment4_root.tfplan"
+module.ghost.docker_image.ghost_image: Creating...
+module.ghost.docker_image.ghost_image: Creation complete after 0s [id=sha256:b05a58075ef6ad79016adb818a0a0b65097dfc58781e6eb6ab272fd32d976db9ghost:latest]
+module.ghost.docker_container.ghost_container: Creating...
+module.ghost.docker_container.ghost_container: Still creating... [10s elapsed]
+module.ghost.docker_container.ghost_container: Creation complete after 18s [id=24463d65374aa98ddfae90d9c0446e445a165d9507ecacb9ef917a7d5f397a54]
+
+Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+container_name = "blog"
+ip = "172.17.0.3"

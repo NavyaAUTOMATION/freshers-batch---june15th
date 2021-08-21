@@ -1,0 +1,86 @@
+Create a new Terraform file called main.tf.
+Create three variables.
+The first variable, called image_name, needs to be set to ghost:latest.
+The second variable is called container_name with a default of ghost_blog.
+The final variable is called ext_port and set the default to port 80.
+
+Create a Docker image resource called ghost_image that uses the image_name variable.
+
+Create a Docker container resource called ghost_container.
+The name will use the container_name variable.
+The image will use the ghost_image resource.
+The internal port will be set to 2368.
+The external port will use ext_port variable.
+
+Initialize Terraform.
+
+Create a Terraform plan that uses the following variables:
+
+container_name = ghost_blog1
+image_name = ghost:alpine
+ext_port = 8080
+Output the plan to a file called tfplan.
+
+Then apply the plan using tfplan and make sure that the apply doesn’t prompt for input.
+
+Solution:
+
+**********************main.tf*******************************************
+
+variable "image_name" {
+    default = "ghost:latest"
+}
+variable "container_name" {
+    default = "ghost_blog"
+}
+variable "ext_port" {
+    default = "80"
+}
+
+terraform {
+  required_providers {
+    docker = {
+      source  = "kreuzwerker/docker"
+      version = "2.15.0"
+    }
+  }
+}
+provider "docker" {
+  host = "npipe:////.//pipe//docker_engine"
+}
+# Pulls the image
+resource "docker_image" "ghost_image" {
+  name = var.image_name
+}
+
+resource "docker_container" "ghost_container" {
+    name = var.container_name
+    image = docker_image.ghost_image.latest
+        ports {
+            internal = 2368
+            external = var.ext_port
+        }
+}
+
+Dell@DESKTOP-HOURH7G MINGW64 ~/Desktop/DevOps_Assignments Navya Datla/Terraform Assignment/Terraform_assignment_2 (master)
+$ terraform init
+
+Initializing the backend...
+
+Initializing provider plugins...
+- Reusing previous version of kreuzwerker/docker from the dependency lock file
+- Using previously-installed kreuzwerker/docker v2.15.0
+
+Terraform has been successfully initialized!
+
+
+Dell@DESKTOP-HOURH7G MINGW64 ~/Desktop/DevOps_Assignments Navya Datla/Terraform Assignment/Terraform_assignment_2 (master)
+$ terraform plan -var "container_name=ghost_blog1" -var "image_name=ghost:alpine" -var "ext_port=8080" -out assignment2.tfplan
+docker_image.ghost_image: Refreshing state... [id=sha256:b05a58075ef6ad79016adb818a0a0b65097dfc58781e6eb6ab272fd32d976db9ghost:latest]
+
+
+Dell@DESKTOP-HOURH7G MINGW64 ~/Desktop/DevOps_Assignments Navya Datla/Terraform Assignment/Terraform_assignment_2 (master)
+$ terraform apply "assignment2.tfplan"
+docker_image.ghost_image: Modifying... [id=sha256:b05a58075ef6ad79016adb818a0a0b65097dfc58781e6eb6ab272fd32d976db9ghost:latest]
+docker_image.ghost_image: Modifications complete after 0s [id=sha256:cf0dc2177a49d260a09e2a47271d49f4d25b7daf9493abc2ffbe43d21f776c17ghost:alpine]
+
